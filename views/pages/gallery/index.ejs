@@ -1,0 +1,105 @@
+<%- include('../../layout/header') %>
+
+<div class="dashboard-header-banner">
+    <div class="banner-welcome-text">
+        <h1>Blog</h1>
+        <p>Manage blog posts and details.</p>
+    </div>
+
+    <div class="banner-actions">
+        <a href="/gallery/create" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Add Blog Post
+        </a>
+    </div>
+</div>
+
+<div class="table-container">
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Image</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Read Time</th>
+                <th>Summary</th>
+                <th>Created At</th>
+                <th width="120">Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <% if(galleries.length > 0){ %>
+
+                <% galleries.forEach((gallery, index)=>{ %>
+
+                    <tr>
+                        <td><%= index + 1 %></td>
+
+                        <td>
+                            <% if(gallery.image){ %>
+                                <img src="<%= gallery.image %>" width="80" height="60" style="object-fit:cover;border-radius:6px;border:1px solid #ddd;">
+                            <% } else { %>
+                                <span class="badge badge-secondary">No Image</span>
+                            <% } %>
+                        </td>
+
+                        <td><strong><%= gallery.title || '-' %></strong></td>
+                        <td><%= gallery.subtitle || '-' %></td>
+                        <td>
+                            <% if(gallery.date) { %>
+                                <%= new Date(gallery.date).toLocaleDateString() %>
+                            <% } else { %>
+                                -
+                            <% } %>
+                        </td>
+                        <td><%= gallery.time ? gallery.time + ' min read' : '-' %></td>
+                        <td>
+                            <% if(gallery.description) { %>
+                                <% const plainText = gallery.description.replace(/<[^>]*>/g, ''); %>
+                                <span title="<%= plainText %>">
+                                    <%= plainText.length > 50 ? plainText.substring(0, 50) + '...' : plainText %>
+                                </span>
+                            <% } else { %>
+                                -
+                            <% } %>
+                        </td>
+
+                        <td>
+                            <%= new Date(gallery.created_at).toLocaleDateString() %>
+                        </td>
+
+                        <td>
+                            <a href="/gallery/edit/<%= gallery.id %>" class="btn btn-sm btn-warning" title="Edit">
+                                <i class="fa fa-edit"></i>
+                            </a>
+
+                            <a href="/gallery/delete/<%= gallery.id %>"
+                               class="btn btn-sm btn-danger"
+                               title="Delete"
+                               onclick="return confirm('Delete this blog post?')">
+                                <i class="fa fa-trash"></i>
+                            </a>
+                        </td>
+
+                    </tr>
+
+                <% }) %>
+
+            <% } else { %>
+
+                <tr>
+                    <td colspan="9" style="text-align:center;">
+                        No blog posts found.
+                    </td>
+                </tr>
+
+            <% } %>
+        </tbody>
+    </table>
+
+</div>
+
+<%- include('../../layout/footer') %>

@@ -1,0 +1,122 @@
+<%- include('layout/header') %>
+
+<!-- Dashboard Welcome Banner -->
+<div class="dashboard-header-banner">
+    <div class="banner-welcome-text">
+        <h1>Welcome back, <%= user.name %>!</h1>
+        <p>Here is your enterprise analytics overview for today.</p>
+    </div>
+    <div class="banner-actions">
+        <button class="btn btn-secondary">
+            <i class="fa-solid fa-download"></i> Export Report
+        </button>
+        <button class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Create Invoice
+        </button>
+    </div>
+</div>
+
+<!-- Metrics Cards Section -->
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="card-border-glow"></div>
+        <div class="card-content">
+            <div class="card-header">
+                <span class="card-title">Total Products</span>
+                <div class="card-icon revenue">
+                    <i class="fa-solid fa-box"></i>
+                </div>
+            </div>
+            <div class="card-body">
+                <h2><%= stats.totalProducts %></h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="card-border-glow"></div>
+        <div class="card-content">
+            <div class="card-header">
+                <span class="card-title">Total Categories</span>
+                <div class="card-icon users">
+                    <i class="fa-solid fa-list"></i>
+                </div>
+            </div>
+            <div class="card-body">
+                <h2><%= stats.totalCategories %></h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="card-border-glow"></div>
+        <div class="card-content">
+            <div class="card-header">
+                <span class="card-title">Total Blogs</span>
+                <div class="card-icon sales">
+                    <i class="fa-solid fa-blog"></i>
+                </div>
+            </div>
+            <div class="card-body">
+                <h2><%= stats.totalBlogs %></h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="card-border-glow"></div>
+        <div class="card-content">
+            <div class="card-header">
+                <span class="card-title">Total Projects</span>
+                <div class="card-icon server">
+                    <i class="fa-solid fa-diagram-project"></i>
+                </div>
+            </div>
+            <div class="card-body">
+                <h2><%= stats.totalProjects %></h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="card-border-glow"></div>
+        <div class="card-content">
+            <div class="card-header">
+                <span class="card-title">Total Offerings</span>
+                <div class="card-icon revenue">
+                    <i class="fa-solid fa-gift"></i>
+                </div>
+            </div>
+            <div class="card-body">
+                <h2><%= stats.totalOfferings %></h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="charts-grid">
+    <!-- Main Revenue Area Chart -->
+    <div class="chart-container large">
+        <div class="chart-header">
+            <h3>Revenue Growth Dynamics</h3>
+            <span class="subtext">Jan - Jul 2026</span>
+        </div>
+        <div class="chart-canvas-wrapper">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Doughnut Category Distribution Chart -->
+    <div class="chart-container small">
+        <div class="chart-header">
+            <h3>Traffic Channels</h3>
+            <span class="subtext">Customer acquisition</span>
+        </div>
+        <div class="chart-canvas-wrapper">
+            <canvas id="salesChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<%- include('layout/footer') %>

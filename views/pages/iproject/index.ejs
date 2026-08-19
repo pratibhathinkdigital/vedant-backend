@@ -1,0 +1,109 @@
+<%- include('../../layout/header') %>
+
+<div class="dashboard-header-banner">
+    <div class="banner-welcome-text">
+        <h1>I Projects</h1>
+        <p>Manage I-Project posts and details.</p>
+    </div>
+
+    <div class="banner-actions">
+        <a href="/iprojects/create" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Add I-Project
+        </a>
+    </div>
+</div>
+
+<div class="table-container">
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Image</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Read Time</th>
+                <th>Summary</th>
+                <th>Created At</th>
+                <th width="120">Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <% if(iprojects.length > 0){ %>
+
+                <% iprojects.forEach((iproject, index) => { %>
+
+                    <tr>
+                        <td><%= index + 1 %></td>
+
+                        <td>
+                            <% if(iproject.image){ %>
+                                <img src="<%= iproject.image %>" width="80" height="60"
+                                    style="object-fit:cover;border-radius:6px;border:1px solid #ddd;">
+                            <% } else { %>
+                                <span class="badge badge-secondary">No Image</span>
+                            <% } %>
+                        </td>
+
+                        <td><strong><%= iproject.title || '-' %></strong></td>
+                        <td><%= iproject.subtitle || '-' %></td>
+
+                        <td>
+                            <% if(iproject.date) { %>
+                                <%= new Date(iproject.date).toLocaleDateString() %>
+                            <% } else { %>
+                                -
+                            <% } %>
+                        </td>
+
+                        <td><%= iproject.time ? iproject.time + ' min read' : '-' %></td>
+
+                        <td>
+                            <% if(iproject.description) { %>
+                                <% const plainText = iproject.description.replace(/<[^>]*>/g, ''); %>
+                                <span title="<%= plainText %>">
+                                    <%= plainText.length > 50 ? plainText.substring(0, 50) + '...' : plainText %>
+                                </span>
+                            <% } else { %>
+                                -
+                            <% } %>
+                        </td>
+
+                        <td>
+                            <%= new Date(iproject.created_at).toLocaleDateString() %>
+                        </td>
+
+                        <td>
+                            <a href="/iprojects/edit/<%= iproject.id %>" class="btn btn-sm btn-warning" title="Edit">
+                                <i class="fa fa-edit"></i>
+                            </a>
+
+                            <a href="/iprojects/delete/<%= iproject.id %>"
+                               class="btn btn-sm btn-danger"
+                               title="Delete"
+                               onclick="return confirm('Delete this I-Project?')">
+                                <i class="fa fa-trash"></i>
+                            </a>
+                        </td>
+
+                    </tr>
+
+                <% }) %>
+
+            <% } else { %>
+
+                <tr>
+                    <td colspan="9" style="text-align:center;">
+                        No I-Project found.
+                    </td>
+                </tr>
+
+            <% } %>
+        </tbody>
+    </table>
+
+</div>
+
+<%- include('../../layout/footer') %>

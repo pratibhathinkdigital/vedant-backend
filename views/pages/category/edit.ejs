@@ -1,0 +1,88 @@
+<%- include('../../layout/header') %>
+
+<div class="dashboard-header-banner">
+    <div class="banner-welcome-text">
+        <h1>Edit Category</h1>
+        <p>Update category details and classification settings.</p>
+    </div>
+    <div class="banner-actions">
+        <a href="/categories" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to Categories
+        </a>
+    </div>
+</div>
+
+<div class="table-container" style="max-width: 800px; margin: 20px 0;">
+    <div class="section-header">
+        <h3>Modify Category Settings</h3>
+    </div>
+    
+    <form action="/categories/update/<%= category.id %>" method="POST" enctype="multipart/form-data" class="form-wrapper">
+        <div class="form-group">
+            <label for="name">Category Name</label>
+            <input type="text" id="name" name="name" required value="<%= category.name %>" placeholder="e.g. Mobile Phones & Tablets">
+        </div>
+
+        <div class="form-group">
+            <label for="title">Title <small style="color:var(--text-muted);">(shown on frontend banner/page)</small></label>
+            <input type="text" id="title" name="title" value="<%= category.title || '' %>" placeholder="e.g. Explore Our Mobile Collection">
+        </div>
+
+        <div class="form-group">
+            <label for="subtitle">Subtitle <small style="color:var(--text-muted);">(supporting text below title)</small></label>
+            <input type="text" id="subtitle" name="subtitle" value="<%= category.subtitle || '' %>" placeholder="e.g. Best deals on top brands">
+        </div>
+
+        <div class="form-group">
+            <label for="slug">URL Slug</label>
+            <input type="text" id="slug" name="slug" required value="<%= category.slug %>" placeholder="e.g. mobile-phones-tablets">
+        </div>
+
+        <div class="form-group">
+            <label for="image">Category Image</label>
+            <% if (category.image) { %>
+                <div style="margin-bottom: 10px;">
+                    <img src="<%= category.image %>" alt="Current Image" style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover; border: 1px solid var(--glass-border);">
+                </div>
+            <% } %>
+            <input type="file" id="image" name="image" accept="image/*">
+            <small>Supported formats: JPG, PNG, JPEG, WEBP. Leave empty to keep the current image.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+                <option value="Active" <%= category.status === 'Active' ? 'selected' : '' %>>Active</option>
+                <option value="Inactive" <%= category.status === 'Inactive' ? 'selected' : '' %>>Inactive</option>
+            </select>
+        </div>
+
+    <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="5" placeholder="Write a short description of products..."><%= category.description %></textarea>
+    </div>
+
+    <div class="form-actions">
+        <a href="/categories" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </div>
+</form>
+</div>
+
+<script>
+    // Automatic Slug Generator
+    const nameInput = document.getElementById('name');
+    const slugInput = document.getElementById('slug');
+    
+    if(nameInput && slugInput) {
+        nameInput.addEventListener('input', function() {
+            slugInput.value = this.value
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-');
+        });
+    }
+</script>
+
+<%- include('../../layout/footer') %>

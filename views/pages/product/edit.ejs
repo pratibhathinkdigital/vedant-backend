@@ -1,0 +1,259 @@
+<%- include('../../layout/header') %>
+
+    <div class="dashboard-header-banner">
+        <div class="banner-welcome-text">
+            <h1>Edit We Manufacture</h1>
+            <p>Update We Manufacture details.</p>
+        </div>
+        <div class="banner-actions">
+            <a href="/products" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i>
+                Back to We Manufacture
+            </a>
+        </div>
+    </div>
+
+    <div class="table-container" style="max-width:960px; margin:20px 0;">
+
+        <form action="/products/update/<%= product.id %>" method="POST" enctype="multipart/form-data" class="form-wrapper">
+
+            <!-- ─── BASIC INFO ──────────────────────────────────────────── -->
+            <div class="section-header"><h3>Basic Information</h3></div>
+
+            <div class="form-group">
+                <label>Select Category</label>
+                <select name="category_id" required>
+                    <% categories.forEach(category=> { %>
+                        <option value="<%= category.id %>" <%= product.category_id == category.id ? 'selected' : '' %>>
+                            <%= category.name %>
+                        </option>
+                    <% }) %>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>We Manufacture Name</label>
+                <input type="text" name="name" value="<%= product.name %>" required>
+            </div>
+
+            <div class="form-group">
+                <label>We Manufacture Image</label>
+                <% if (product.image) { %>
+                    <div style="margin-bottom:8px;">
+                        <img src="<%= product.image %>" style="max-height:120px;border-radius:8px;border:1px solid #ddd;">
+                        <p style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Current image. Upload new to replace.</p>
+                    </div>
+                <% } %>
+                <input type="file" name="image" accept="image/*">
+            </div>
+
+            <div class="form-group">
+                <label>Long Image</label>
+                <% if (product.long_image) { %>
+                    <div style="margin-bottom:8px;">
+                        <img src="<%= product.long_image %>" style="max-height:120px;border-radius:8px;border:1px solid #ddd;">
+                        <p style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Current image. Upload new to replace.</p>
+                    </div>
+                <% } %>
+                <input type="file" name="long_image" accept="image/*">
+                <small style="color:var(--text-secondary);font-weight:400;">Upload a long/tall image for the detail page</small>
+            </div>
+
+            <div class="form-group">
+                <label>YouTube Link</label>
+                <input type="url" name="youtube_link" value="<%= product.youtube_link || '' %>" placeholder="https://www.youtube.com/watch?v=...">
+                <small style="color:var(--text-secondary);font-weight:400;">Paste the YouTube video link here</small>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="desc" name="desc"><%= product.desc %></textarea>
+            </div>
+
+            <!-- ─── WHY CHOOSE OUR SERVO PRESS ───────────────────────── -->
+            <div class="section-header" style="margin-top:28px;">
+                <h3>Why Choose Our Solution</h3>
+            </div>
+
+            <div class="form-group">
+                <label>Section Description <small style="color:var(--text-secondary);font-weight:400;">(short overview)</small></label>
+                <textarea name="why_choose_desc" rows="3" placeholder="e.g. Our servo press delivers unmatched precision..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-family:inherit;font-size:14px;resize:vertical;"><%= product.why_choose_desc || '' %></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Variants / Points</label>
+                <div id="why-choose-rows"></div>
+                <button type="button" class="btn btn-secondary" style="margin-top:8px;" onclick="addRow('why-choose-rows', 'why_choose_variants')">
+                    <i class="fa-solid fa-plus"></i> Add Variant
+                </button>
+            </div>
+
+            <!-- ─── INDUSTRY SOLUTIONS ─────────────────────────────────── -->
+            <div class="section-header" style="margin-top:28px;">
+                <h3>Application</h3>
+            </div>
+
+            <div class="form-group">
+                <label>Industry Variants <small style="color:var(--text-secondary);font-weight:400;">(add industry names)</small></label>
+                <div id="industry-rows"></div>
+                <button type="button" class="btn btn-secondary" style="margin-top:8px;" onclick="addRow('industry-rows', 'industry_variants')">
+                    <i class="fa-solid fa-plus"></i> Add Industry
+                </button>
+            </div>
+
+            <!-- ─── SMART MANUFACTURING BENEFITS ──────────────────────── -->
+            <div class="section-header" style="margin-top:28px;">
+                <h3>Smart Manufacturing Benefits</h3>
+            </div>
+
+            <div class="form-group">
+                <div id="benefit-rows"></div>
+                <button type="button" class="btn btn-secondary" style="margin-top:8px;" onclick="addBenefitRow()">
+                    <i class="fa-solid fa-plus"></i> Add Benefit
+                </button>
+            </div>
+
+            <!-- ─── FORM ACTIONS ───────────────────────────────────────── -->
+            <div class="form-actions">
+                <a href="/products" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Update We Manufacture</button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Summernote CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.css" rel="stylesheet">
+    <!-- Summernote JS -->
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.js"></script>
+
+    <style>
+        .dynamic-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .dynamic-row input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        .benefit-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+        .benefit-card .benefit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .benefit-card .benefit-header span {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .benefit-card .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .benefit-card input, .benefit-card textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .benefit-card textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function () {
+            $("#desc").summernote({
+                height: 250,
+                placeholder: "Enter We Manufacture Description",
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'italic', 'underline', 'clear']],
+                    ['fontsize', ['fontsize']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['insert', ['link', 'picture', 'table']],
+                    ['view', ['fullscreen', 'codeview']]
+                ]
+            });
+
+            // Pre-load existing data safely using JSON
+            const whyVariantsData = <%- JSON.stringify(whyChooseVariants) %>;
+            whyVariantsData.forEach(v => addRow('why-choose-rows', 'why_choose_variants', v.variant_name));
+
+            const industryData = <%- JSON.stringify(industrySolutions) %>;
+            industryData.forEach(v => addRow('industry-rows', 'industry_variants', v.variant_name));
+
+            const smartData = <%- JSON.stringify(smartBenefits) %>;
+            smartData.forEach(b => addBenefitRow(b.small_desc || '', b.title || '', b.description || ''));
+        });
+
+        // Generic single-input row
+        function addRow(containerId, fieldName, value = '') {
+            const container = document.getElementById(containerId);
+            const row = document.createElement('div');
+            row.className = 'dynamic-row';
+            row.innerHTML = `
+                <input type="text" name="${fieldName}[]" value="${value}" placeholder="Enter name..." required>
+                <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('.dynamic-row').remove()">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(row);
+        }
+
+        // Benefit row with small_desc, title, description
+        let benefitCount = 0;
+        function addBenefitRow(smallDesc = '', title = '', desc = '') {
+            const container = document.getElementById('benefit-rows');
+            const idx = benefitCount++;
+            const card = document.createElement('div');
+            card.className = 'benefit-card';
+            card.innerHTML = `
+                <div class="benefit-header">
+                    <span>Benefit #${idx + 1}</span>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('.benefit-card').remove()">
+                        <i class="fa-solid fa-trash"></i> Remove
+                    </button>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Small Description</label>
+                        <input type="text" name="benefit_small_desc[]" value="${smallDesc}" placeholder="e.g. Precision Control">
+                    </div>
+                    <div>
+                        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Title</label>
+                        <input type="text" name="benefit_title[]" value="${title}" placeholder="e.g. Advanced Servo Technology">
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Description</label>
+                    <textarea name="benefit_desc[]" placeholder="Enter detailed description...">${desc}</textarea>
+                </div>
+            `;
+            container.appendChild(card);
+        }
+    </script>
+
+<%- include('../../layout/footer') %>

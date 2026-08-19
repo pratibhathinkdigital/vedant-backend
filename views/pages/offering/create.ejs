@@ -1,0 +1,75 @@
+<%- include('../../layout/header') %>
+
+    <div class="dashboard-header-banner">
+        <div class="banner-welcome-text">
+            <h1>Create Offering</h1>
+            <p>Add a new offering image.</p>
+        </div>
+
+        <div class="banner-actions">
+            <a href="/offerings" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i>
+                Back to Offerings
+            </a>
+        </div>
+    </div>
+
+    <div class="table-container" style="max-width:900px; margin:20px 0;">
+        <div class="section-header">
+            <h3>Offering Details</h3>
+        </div>
+        <form action="/offerings/store" method="POST" enctype="multipart/form-data" class="form-wrapper">
+
+            <!-- Image -->
+            <div class="form-group">
+                <label>Offering Image</label>
+                <input type="file" name="image" class="form-control" accept="image/*" required>
+                <small>
+                    Supported: JPG, JPEG, PNG, WEBP
+                </small>
+            </div>
+
+            <!-- Preview -->
+            <div class="form-group">
+                <img id="preview" src="" style="
+                    display:none;
+                    width:250px;
+                    border-radius:10px;
+                    margin-top:10px;
+                    border:1px solid #ddd;
+                ">
+            </div>
+
+            <!-- Buttons -->
+            <div class="form-actions">
+                <a href="/offerings" class="btn btn-secondary">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    Save Offering
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+
+        const imageInput = document.querySelector('input[name="image"]');
+        const preview = document.getElementById("preview");
+
+        imageInput.addEventListener("change", function () {
+
+            const file = this.files[0];
+
+            if (file) {
+
+                preview.src = URL.createObjectURL(file);
+                preview.style.display = "block";
+
+            }
+
+        });
+
+    </script>
+
+<%- include('../../layout/footer') %>

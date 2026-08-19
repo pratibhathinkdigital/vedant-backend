@@ -1,0 +1,169 @@
+<%- include('../../layout/header') %>
+
+<div class="dashboard-header-banner">
+    <div class="banner-welcome-text">
+        <h1>Create Associate Variant</h1>
+        <p>Add a new variant for an associate category.</p>
+    </div>
+    <div class="banner-actions">
+        <a href="/associate-variants" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="table-container" style="max-width: 900px; margin: 20px 0;">
+    <div class="section-header">
+        <h3>Variant Details</h3>
+    </div>
+
+    <form action="/associate-variants/store" method="POST" enctype="multipart/form-data" class="form-wrapper">
+        
+        <div class="form-group">
+            <label>Associate Category</label>
+            <select name="associate_category_id" required>
+                <option value="">Select Category</option>
+                <% categories.forEach(cat => { %>
+                    <option value="<%= cat.id %>"><%= cat.name %></option>
+                <% }) %>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Title / Variant Type</label>
+            <input type="text" name="title" required placeholder="e.g. Servo Drives">
+        </div>
+
+        <div class="form-group">
+            <label>Main Image</label>
+            <input type="file" name="image" accept="image/*">
+        </div>
+
+        <div class="form-group">
+            <label>Category / Brand Logo (Optional)</label>
+            <input type="file" name="logo" accept="image/*">
+            <small style="color:var(--text-muted);font-size:12px;">Upload brand logo (e.g. Delta, Kinco, Pneumax logo).</small>
+        </div>
+
+        <div class="form-group">
+            <label>PDF Brochure (Optional)</label>
+            <input type="file" name="pdf" accept="application/pdf">
+        </div>
+
+        <div class="form-group">
+            <label>Description</label>
+            <textarea id="description" name="description"></textarea>
+        </div>
+
+        <!-- PLC We Offer Section -->
+        <div class="section-header" style="margin-top:30px;">
+            <h3>PLC We Offer (Sub-variants)</h3>
+        </div>
+
+        <div class="form-group">
+            <div id="plc-items"></div>
+            <button type="button" class="btn btn-secondary" style="margin-top:8px;" onclick="addPlcItem()">
+                <i class="fa-solid fa-plus"></i> Add Sub-variant
+            </button>
+        </div>
+
+        <div class="form-actions">
+            <a href="/associate-variants" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Variant</button>
+        </div>
+    </form>
+</div>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Summernote CSS -->
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.css" rel="stylesheet">
+<!-- Summernote JS -->
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.js"></script>
+
+<style>
+    .plc-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 14px;
+    }
+    .plc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    .plc-header span {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    .plc-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    .plc-card label {
+        font-size: 13px;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 4px;
+    }
+    .plc-card input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $("#description").summernote({
+            height: 250,
+            placeholder: "Enter variant description...",
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'italic', 'underline', 'clear']],
+                ['fontsize', ['fontsize']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['insert', ['link', 'picture', 'table']],
+                ['view', ['fullscreen', 'codeview']]
+            ]
+        });
+    });
+
+    let plcCount = 0;
+    function addPlcItem() {
+        const container = document.getElementById('plc-items');
+        const idx = plcCount++;
+        const card = document.createElement('div');
+        card.className = 'plc-card';
+        card.innerHTML = `
+            <div class="plc-header">
+                <span>Sub-variant #${idx + 1}</span>
+                <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('.plc-card').remove()">
+                    <i class="fa-solid fa-trash"></i> Remove
+                </button>
+            </div>
+            <div class="plc-row">
+                <div>
+                    <label>Title</label>
+                    <input type="text" name="plc_title[]" placeholder="e.g. AS Series PLC" required>
+                </div>
+                <div>
+                    <label>Image</label>
+                    <input type="file" name="plc_image_${idx}" accept="image/*">
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    }
+</script>
+
+<%- include('../../layout/footer') %>

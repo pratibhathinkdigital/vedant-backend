@@ -1,0 +1,38 @@
+<%- include('../../layout/header') %>
+
+<div class="dashboard-header-banner">
+    <div class="banner-welcome-text">
+        <h1>Edit Insta Link</h1>
+        <p>Update the Instagram link.</p>
+    </div>
+
+    <div class="banner-actions">
+        <a href="/instalinks" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i>
+            Back to Insta Links
+        </a>
+    </div>
+</div>
+
+<div class="table-container" style="max-width:800px; margin:20px 0;">
+    <div class="section-header">
+        <h3>Edit Details</h3>
+    </div>
+    <form action="/instalinks/update/<%= instalink.id %>" method="POST" class="form-wrapper">
+        <div class="form-group">
+            <label for="link">Instagram Link</label>
+            <input type="url" id="link" name="link" class="form-control" value="<%= instalink.link %>" required>
+        </div>
+
+        <div class="form-actions">
+            <a href="/instalinks" class="btn btn-secondary">
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                Update Insta Link
+            </button>
+        </div>
+    </form>
+</div>
+
+<%- include('../../layout/footer') %>

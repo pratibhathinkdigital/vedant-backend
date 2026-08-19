@@ -1,0 +1,95 @@
+<%- include('../../layout/header') %>
+
+<div class="dashboard-header-banner">
+    <div class="banner-welcome-text">
+        <h1>Case Study</h1>
+        <p>Manage case studies with images or videos.</p>
+    </div>
+
+    <div class="banner-actions">
+        <a href="/projects/create" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Add Case Study
+        </a>
+    </div>
+</div>
+
+<div class="table-container">
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Media Type</th>
+                <th>Preview</th>
+                <th>Title</th>
+                <th>Subtitle</th>
+                <th>Created At</th>
+                <th width="120">Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <% if(projects.length > 0){ %>
+
+                <% projects.forEach((project, index)=>{ %>
+
+                    <tr>
+                        <td><%= index + 1 %></td>
+
+                        <td>
+                            <% if(project.media_type === 'video') { %>
+                                <span class="badge" style="background:#3b82f6;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:600;">Video</span>
+                            <% } else { %>
+                                <span class="badge" style="background:#10b981;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:600;">Image</span>
+                            <% } %>
+                        </td>
+
+                        <td>
+                            <% if(project.media_type === 'video' && project.video) { %>
+                                <video src="<%= project.video %>" width="80" height="60" style="object-fit:cover;border-radius:6px;border:1px solid #ddd;" muted preload="metadata"></video>
+                            <% } else if(project.image) { %>
+                                <img src="<%= project.image %>" width="80" height="60" style="object-fit:cover;border-radius:6px;border:1px solid #ddd;">
+                            <% } else { %>
+                                <span style="font-size:12px;color:#999;">No Media</span>
+                            <% } %>
+                        </td>
+
+                        <td><strong><%= project.title || '-' %></strong></td>
+                        <td><%= project.subtitle || '-' %></td>
+
+                        <td>
+                            <%= new Date(project.created_at).toLocaleDateString() %>
+                        </td>
+
+                        <td>
+                            <a href="/projects/edit/<%= project.id %>" class="btn btn-sm btn-warning" title="Edit">
+                                <i class="fa fa-edit"></i>
+                            </a>
+
+                            <a href="/projects/delete/<%= project.id %>"
+                               class="btn btn-sm btn-danger"
+                               title="Delete"
+                               onclick="return confirm('Delete this case study?')">
+                                <i class="fa fa-trash"></i>
+                            </a>
+                        </td>
+
+                    </tr>
+
+                <% }) %>
+
+            <% } else { %>
+
+                <tr>
+                    <td colspan="7" style="text-align:center;">
+                        No case studies found.
+                    </td>
+                </tr>
+
+            <% } %>
+        </tbody>
+    </table>
+
+</div>
+
+<%- include('../../layout/footer') %>

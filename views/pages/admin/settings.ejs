@@ -1,0 +1,112 @@
+<%- include('../../layout/header') %>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Admin Settings</h1>
+        <p class="page-subtitle">Manage your admin login credentials</p>
+    </div>
+</div>
+
+<% if (success) { %>
+<div class="alert alert-success" style="background:#f0fff4;border:1px solid #9ae6b4;color:#276749;padding:14px 20px;border-radius:10px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+    <i class="fa-solid fa-circle-check"></i> <%= success %>
+</div>
+<% } %>
+
+<% if (error) { %>
+<div class="alert alert-error" style="background:#fff5f5;border:1px solid #fed7d7;color:#c53030;padding:14px 20px;border-radius:10px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+    <i class="fa-solid fa-circle-exclamation"></i> <%= error %>
+</div>
+<% } %>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;">
+    <!-- Current Credentials Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-id-card" style="margin-right:8px;color:var(--accent-color);"></i>Current Credentials</h3>
+        </div>
+        <div class="card-body">
+            <table style="width:100%;border-collapse:collapse;">
+                <tr>
+                    <td style="padding:12px 0;color:var(--text-muted);font-size:13px;font-weight:600;border-bottom:1px solid var(--glass-border);width:40%;">USERNAME</td>
+                    <td style="padding:12px 0;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--glass-border);">
+                        <code style="background:var(--glass-bg);padding:4px 10px;border-radius:6px;font-size:14px;border:1px solid var(--glass-border);"><%= currentUsername %></code>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:12px 0;color:var(--text-muted);font-size:13px;font-weight:600;width:40%;">PASSWORD</td>
+                    <td style="padding:12px 0;">
+                        <code style="background:var(--glass-bg);padding:4px 10px;border-radius:6px;font-size:14px;border:1px solid var(--glass-border);" id="passDisplay">••••••••</code>
+                        <button onclick="togglePass()" style="background:none;border:none;cursor:pointer;color:var(--accent-color);margin-left:8px;font-size:13px;">
+                            <i class="fa-solid fa-eye" id="eyeIcon"></i>
+                        </button>
+                        <span id="passReal" style="display:none;"><%= currentPassword %></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:12px 0;color:var(--text-muted);font-size:13px;font-weight:600;">LOGIN URL</td>
+                    <td style="padding:12px 0;">
+                        <a href="/admin/login" target="_blank" style="color:var(--accent-color);font-size:13px;">/admin/login</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Update Credentials Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-pen-to-square" style="margin-right:8px;color:var(--accent-color);"></i>Update Credentials</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="/admin/settings">
+                <div class="form-group">
+                    <label for="new_username">New Username</label>
+                    <input type="text" id="new_username" name="new_username" value="<%= currentUsername %>" placeholder="Enter new username" required>
+                </div>
+                <div class="form-group">
+                    <label for="new_password">New Password</label>
+                    <div style="position:relative;">
+                        <input type="password" id="new_password" name="new_password" placeholder="Enter new password" style="padding-right:40px;">
+                        <span onclick="toggleNewPass()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text-muted);">
+                            <i class="fa-solid fa-eye" id="newEyeIcon"></i>
+                        </span>
+                    </div>
+                    <small style="color:var(--text-muted);font-size:12px;">Leave empty to keep current password</small>
+                </div>
+                <div class="form-group">
+                    <label for="current_password">Confirm with Current Password</label>
+                    <input type="password" id="current_password" name="current_password" placeholder="Enter current password to confirm" required>
+                </div>
+                <div class="form-actions" style="margin-top:20px;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    let passShown = false;
+    function togglePass() {
+        const display = document.getElementById('passDisplay');
+        const real = document.getElementById('passReal').textContent;
+        const icon = document.getElementById('eyeIcon');
+        passShown = !passShown;
+        display.textContent = passShown ? real : '••••••••';
+        icon.className = passShown ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+    }
+
+    let newPassShown = false;
+    function toggleNewPass() {
+        const input = document.getElementById('new_password');
+        const icon = document.getElementById('newEyeIcon');
+        newPassShown = !newPassShown;
+        input.type = newPassShown ? 'text' : 'password';
+        icon.className = newPassShown ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+    }
+</script>
+
+<%- include('../../layout/footer') %>

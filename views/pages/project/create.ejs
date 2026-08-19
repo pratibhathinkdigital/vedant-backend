@@ -1,0 +1,220 @@
+<%- include('../../layout/header') %>
+
+<div class="dashboard-header-banner">
+    <div class="banner-welcome-text">
+        <h1>Create Case Study</h1>
+        <p>Add a new case study with image or video.</p>
+    </div>
+    <div class="banner-actions">
+        <a href="/projects" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to Case Study
+        </a>
+    </div>
+</div>
+
+<div class="table-container" style="max-width: 900px; margin: 20px 0;">
+    <div class="section-header">
+        <h3>Case Study Details</h3>
+    </div>
+
+    <form action="/projects/store" method="POST" enctype="multipart/form-data" class="form-wrapper">
+
+        <!-- Title -->
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" class="form-control" placeholder="Enter case study title" required>
+        </div>
+
+        <!-- Subtitle -->
+        <div class="form-group">
+            <label for="subtitle">Subtitle</label>
+            <input type="text" id="subtitle" name="subtitle" class="form-control" placeholder="Enter case study subtitle">
+        </div>
+
+        <!-- Media Type Selector -->
+        <div class="form-group">
+            <label for="media_type">Media Type</label>
+            <select id="media_type" name="media_type" class="form-control" required onchange="toggleMediaInputs()">
+                <option value="image" selected>Image</option>
+                <option value="video">Video</option>
+            </select>
+        </div>
+
+        <!-- Image Upload Group -->
+        <div class="form-group" id="imageGroup">
+            <label for="image">Upload Image</label>
+            <input type="file" id="image" name="image" class="form-control" accept="image/*">
+            <small>Supported formats: JPG, JPEG, PNG, WEBP</small>
+        </div>
+
+        <!-- Video Upload Group -->
+        <div class="form-group" id="videoGroup" style="display: none;">
+            <label for="video">Upload Video</label>
+            <input type="file" id="video" name="video" class="form-control" accept="video/*">
+            <small>Supported formats: MP4, WebM, Ogg</small>
+        </div>
+
+        <!-- Description (Summernote) -->
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description"></textarea>
+        </div>
+
+        <!-- ─── More Case Studies Section ─────────────────────────────── -->
+        <div class="section-header" style="margin-top:28px;">
+            <h3>More Case Studies</h3>
+        </div>
+
+        <div class="form-group">
+            <div id="case-study-items"></div>
+            <button type="button" class="btn btn-secondary" style="margin-top:8px;" onclick="addCaseStudyItem()">
+                <i class="fa-solid fa-plus"></i> Add Case Study Item
+            </button>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <a href="/projects" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Case Study</button>
+        </div>
+
+    </form>
+</div>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Summernote CSS -->
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.css" rel="stylesheet">
+<!-- Summernote JS -->
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.js"></script>
+
+<style>
+    .cs-item-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 18px;
+        margin-bottom: 16px;
+    }
+    .cs-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+    .cs-item-header span {
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--text-primary);
+    }
+    .cs-item-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+    .cs-item-card label {
+        font-size: 13px;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 4px;
+    }
+    .cs-item-card input[type="text"],
+    .cs-item-card input[type="file"],
+    .cs-item-card textarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+    .cs-item-card textarea {
+        min-height: 70px;
+        resize: vertical;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $("#description").summernote({
+            height: 250,
+            placeholder: "Enter case study description...",
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'italic', 'underline', 'clear']],
+                ['fontsize', ['fontsize']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['insert', ['link', 'picture', 'table']],
+                ['view', ['fullscreen', 'codeview']]
+            ]
+        });
+    });
+
+    function toggleMediaInputs() {
+        const mediaType = document.getElementById("media_type").value;
+        const imageGroup = document.getElementById("imageGroup");
+        const videoGroup = document.getElementById("videoGroup");
+        const imageInput = document.getElementById("image");
+        const videoInput = document.getElementById("video");
+
+        if (mediaType === "image") {
+            imageGroup.style.display = "block";
+            videoGroup.style.display = "none";
+            imageInput.required = true;
+            videoInput.required = false;
+            videoInput.value = "";
+        } else {
+            imageGroup.style.display = "none";
+            videoGroup.style.display = "block";
+            imageInput.required = false;
+            videoInput.required = true;
+            imageInput.value = "";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        toggleMediaInputs();
+    });
+
+    let csItemCount = 0;
+    function addCaseStudyItem(title = '', imgSrc = '', desc = '', facility = '', existingImg = '') {
+        const container = document.getElementById('case-study-items');
+        const idx = csItemCount++;
+        const card = document.createElement('div');
+        card.className = 'cs-item-card';
+        card.innerHTML = `
+            <div class="cs-item-header">
+                <span>Case Study Item #${idx + 1}</span>
+                <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('.cs-item-card').remove()">
+                    <i class="fa-solid fa-trash"></i> Remove
+                </button>
+            </div>
+            <div class="cs-item-grid">
+                <div>
+                    <label>Title</label>
+                    <input type="text" name="item_title[]" value="${title}" placeholder="e.g. Automotive Industry">
+                </div>
+                <div>
+                    <label>Facility</label>
+                    <input type="text" name="item_facility[]" value="${facility}" placeholder="e.g. 500 sq.ft production plant">
+                </div>
+            </div>
+            <div style="margin-bottom:10px;">
+                <label>Image</label>
+                ${imgSrc ? `<img src="${imgSrc}" style="display:block;max-height:80px;border-radius:6px;border:1px solid #ddd;margin-bottom:6px;">` : ''}
+                <input type="file" name="item_image_${idx}" accept="image/*">
+                <input type="hidden" name="existing_item_image[]" value="${existingImg}">
+            </div>
+            <div>
+                <label>Description</label>
+                <textarea name="item_description[]" placeholder="Describe this case study...">${desc}</textarea>
+            </div>
+        `;
+        container.appendChild(card);
+    }
+</script>
+
+<%- include('../../layout/footer') %>

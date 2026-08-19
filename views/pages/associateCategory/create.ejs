@@ -1,0 +1,41 @@
+<%- include('../../layout/header') %>
+
+<div class="dashboard-header-banner">
+    <div class="banner-welcome-text">
+        <h1>Create Associate Category</h1>
+        <p>Add a new category for our associates.</p>
+    </div>
+    <div class="banner-actions">
+        <a href="/associate-categories" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="table-container" style="max-width: 600px; margin: 20px 0;">
+    <div class="section-header">
+        <h3>Category Details</h3>
+    </div>
+
+    <form action="/associate-categories/store" method="POST" class="form-wrapper">
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" name="name" required placeholder="Enter Category Name">
+        </div>
+
+        <div class="form-group">
+            <label>Status</label>
+            <select name="status" required>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+        </div>
+
+        <div class="form-actions">
+            <a href="/associate-categories" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Category</button>
+        </div>
+    </form>
+</div>
+
+<%- include('../../layout/footer') %>

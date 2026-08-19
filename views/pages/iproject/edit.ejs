@@ -1,0 +1,163 @@
+<%- include('../../layout/header') %>
+
+<div class="dashboard-header-banner">
+    <div class="banner-welcome-text">
+        <h1>Edit I-Project</h1>
+        <p>Update I-Project content and image.</p>
+    </div>
+
+    <div class="banner-actions">
+        <a href="/iprojects" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to I-Projects
+        </a>
+    </div>
+</div>
+
+<div class="table-container" style="max-width:700px;margin:20px 0;">
+
+    <div class="section-header">
+        <h3>Edit I-Project Details</h3>
+    </div>
+
+    <form action="/iprojects/update/<%= iproject.id %>" method="POST" enctype="multipart/form-data" class="form-wrapper">
+
+        <!-- Title -->
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input
+                type="text"
+                id="title"
+                name="title"
+                class="form-control"
+                placeholder="Enter title"
+                value="<%= iproject.title || '' %>"
+            >
+        </div>
+
+        <!-- Category -->
+        <div class="form-group">
+            <label for="subtitle">Category</label>
+            <input
+                type="text"
+                id="subtitle"
+                name="subtitle"
+                class="form-control"
+                placeholder="e.g. Design, Technology, Innovation"
+                value="<%= iproject.subtitle || '' %>"
+            >
+        </div>
+
+        <!-- Date -->
+        <div class="form-group">
+            <label for="date">Date</label>
+            <input
+                type="date"
+                id="date"
+                name="date"
+                class="form-control"
+                value="<%= iproject.date || '' %>"
+            >
+        </div>
+
+        <!-- Read Time -->
+        <div class="form-group">
+            <label for="time">Read Time (minutes)</label>
+            <input
+                type="number"
+                id="time"
+                name="time"
+                class="form-control"
+                placeholder="Estimated read time in minutes (e.g. 5)"
+                min="1"
+                value="<%= iproject.time || '' %>"
+            >
+        </div>
+
+        <!-- Content / Summary -->
+        <div class="form-group">
+            <label for="description">Content / Summary</label>
+            <textarea
+                id="description"
+                name="description"
+                class="form-control"
+                rows="6"
+                placeholder="Enter I-Project content or summary"
+            ><%= iproject.description || '' %></textarea>
+        </div>
+
+        <!-- Current Image -->
+        <div class="form-group">
+            <label>Current Image</label><br>
+            <% if(iproject.image){ %>
+                <img src="<%= iproject.image %>"
+                     width="200"
+                     style="border-radius:8px;margin-bottom:15px;border:1px solid #ddd;">
+            <% } %>
+        </div>
+
+        <!-- Change Image -->
+        <div class="form-group">
+            <label>Select New Image</label>
+            <input
+                type="file"
+                name="image"
+                id="image"
+                class="form-control"
+                accept="image/*">
+            <small>Leave empty if you don't want to change the image.</small>
+        </div>
+
+        <div class="form-group">
+            <img id="preview" style="display:none;max-width:200px;border-radius:8px;border:1px solid #ddd;margin-top:10px;">
+        </div>
+
+        <div class="form-actions">
+            <a href="/iprojects" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Update I-Project</button>
+        </div>
+
+    </form>
+
+</div>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- Summernote CSS -->
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.css" rel="stylesheet">
+
+<!-- Summernote JS -->
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.js"></script>
+
+<script>
+const image = document.getElementById("image");
+const preview = document.getElementById("preview");
+
+image.addEventListener("change", function(){
+    const file = this.files[0];
+    if(file){
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = "block";
+    } else {
+        preview.style.display = "none";
+    }
+});
+
+$(document).ready(function() {
+    $("#description").summernote({
+        height: 200,
+        placeholder: "Enter Description",
+        toolbar: [
+            ['style', ['style']],
+            ['font', ['bold', 'italic', 'underline', 'clear']],
+            ['fontsize', ['fontsize']],
+            ['color', ['color']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['insert', ['link', 'picture', 'table']],
+            ['view', ['fullscreen', 'codeview']]
+        ]
+    });
+});
+</script>
+
+<%- include('../../layout/footer') %>

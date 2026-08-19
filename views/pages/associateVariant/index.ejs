@@ -1,0 +1,95 @@
+<%- include('../../layout/header') %>
+
+<div class="dashboard-header-banner">
+    <div class="banner-welcome-text">
+        <h1>Associate Variants</h1>
+        <p>Manage product variants for our associates.</p>
+    </div>
+
+    <div class="banner-actions">
+        <a href="/associate-variants/create" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Add Variant
+        </a>
+    </div>
+</div>
+
+<div class="table-container" style="width:100%; margin-top:20px;">
+
+    <div class="section-header">
+        <h3>All Associate Variants</h3>
+    </div>
+
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Image</th>
+                    <th>Logo</th>
+                    <th>Category</th>
+                    <th>Title</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if(variants && variants.length > 0) { %>
+                    <% variants.forEach(variant => { %>
+                        <tr>
+                            <td><%= variant.id %></td>
+                            <td>
+                                <% if(variant.image) { %>
+                                    <img src="<%= variant.image %>" width="60" style="border-radius:4px;">
+                                <% } else { %>
+                                    <span style="color:#999;font-size:12px;">No Image</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <% if(variant.logo) { %>
+                                    <img src="<%= variant.logo %>" height="30" style="max-width:60px;object-fit:contain;background:#f8fafc;padding:2px 4px;border-radius:4px;border:1px solid #e2e8f0;">
+                                <% } else { %>
+                                    <span style="color:#999;font-size:12px;">—</span>
+                                <% } %>
+                            </td>
+                            <td><%= variant.category_name %></td>
+                            <td><strong><%= variant.title %></strong></td>
+                            <td><%= new Date(variant.createdAt).toLocaleDateString() %></td>
+                            <td class="action-buttons">
+                                <a href="/associate-variants/edit/<%= variant.id %>" class="btn-icon btn-edit" title="Edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <a href="/associate-variants/delete/<%= variant.id %>" class="btn-icon btn-delete" title="Delete" onclick="return confirm('Are you sure you want to delete this variant?');">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="6" style="text-align:center;padding:30px;">
+                            No Associate Variants Found
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .btn-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        margin-right: 6px;
+        color: #fff;
+        text-decoration: none;
+    }
+    .btn-edit { background: #f59e0b; }
+    .btn-delete { background: #ef4444; }
+</style>
+
+<%- include('../../layout/footer') %>

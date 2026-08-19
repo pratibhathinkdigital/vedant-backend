@@ -1,0 +1,184 @@
+            </main>
+        </div>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Client Scripts -->
+    <script>
+        // Toggle Sidebar
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+        if (toggleSidebarBtn) {
+            toggleSidebarBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+            });
+        }
+
+        // Toggle Theme (Dark / Light)
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        
+        // Load preference
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+            
+            // Re-render charts with updated theme colors if active
+            if (window.revenueChart && window.salesChart) {
+                updateChartsTheme(newTheme);
+            }
+        });
+
+        function updateThemeIcon(theme) {
+            const icon = themeToggle.querySelector('i');
+            if (theme === 'light') {
+                icon.className = 'fa-solid fa-sun';
+            } else {
+                icon.className = 'fa-solid fa-moon';
+            }
+        }
+
+        // Notification Dropdown Toggle
+        const notificationBtn = document.getElementById('notification-btn');
+        const notificationMenu = document.getElementById('notification-menu');
+        if (notificationBtn && notificationMenu) {
+            notificationBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notificationMenu.classList.toggle('active');
+            });
+            document.addEventListener('click', () => {
+                notificationMenu.classList.remove('active');
+            });
+        }
+
+        // --- CHART CONFIGURATIONS ---
+        const themeColors = {
+            dark: {
+                grid: 'rgba(255, 255, 255, 0.05)',
+                text: '#94a3b8',
+                accent: '#6366f1',
+                accentGlow: 'rgba(99, 102, 241, 0.25)',
+                secondary: '#38bdf8'
+            },
+            light: {
+                grid: 'rgba(0, 0, 0, 0.05)',
+                text: '#64748b',
+                accent: '#4f46e5',
+                accentGlow: 'rgba(79, 70, 229, 0.15)',
+                secondary: '#0ea5e9'
+            }
+        };
+
+        const activeColors = htmlElement.getAttribute('data-theme') === 'light' ? themeColors.light : themeColors.dark;
+
+        // 1. Revenue Line Chart
+        const ctxRevenue = document.getElementById('revenueChart');
+        if (ctxRevenue) {
+            const gradient = ctxRevenue.getContext('2d').createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, activeColors.accentGlow);
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+            window.revenueChart = new Chart(ctxRevenue, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    datasets: [{
+                        label: 'Revenue Growth',
+                        data: [12000, 19000, 15000, 25000, 22000, 30000, 45000],
+                        borderColor: activeColors.accent,
+                        backgroundColor: gradient,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: activeColors.accent,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: activeColors.text }
+                        },
+                        y: {
+                            grid: { color: activeColors.grid },
+                            ticks: { color: activeColors.text }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Sales Doughnut Chart
+        const ctxSales = document.getElementById('salesChart');
+        if (ctxSales) {
+            window.salesChart = new Chart(ctxSales, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Direct', 'Referral', 'Affiliate'],
+                    datasets: [{
+                        data: [55, 30, 15],
+                        backgroundColor: [activeColors.accent, activeColors.secondary, '#f43f5e'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: activeColors.text,
+                                boxWidth: 12,
+                                padding: 15
+                            }
+                        }
+                    },
+                    cutout: '75%'
+                }
+            });
+        }
+
+        function updateChartsTheme(theme) {
+            const colors = theme === 'light' ? themeColors.light : themeColors.dark;
+            
+            if (window.revenueChart) {
+                const ctx = ctxRevenue.getContext('2d');
+                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, colors.accentGlow);
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                window.revenueChart.data.datasets[0].borderColor = colors.accent;
+                window.revenueChart.data.datasets[0].backgroundColor = gradient;
+                window.revenueChart.data.datasets[0].pointBackgroundColor = colors.accent;
+                window.revenueChart.options.scales.x.ticks.color = colors.text;
+                window.revenueChart.options.scales.y.ticks.color = colors.text;
+                window.revenueChart.options.scales.y.grid.color = colors.grid;
+                window.revenueChart.update();
+            }
+
+            if (window.salesChart) {
+                window.salesChart.data.datasets[0].backgroundColor = [colors.accent, colors.secondary, '#f43f5e'];
+                window.salesChart.options.plugins.legend.labels.color = colors.text;
+                window.salesChart.update();
+            }
+        }
+    </script>
+</body>
+</html>
