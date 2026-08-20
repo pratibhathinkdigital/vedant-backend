@@ -91,33 +91,35 @@ app.post("/api/contact", async (req, res) => {
             [name, phone, companyName || null, email, address || null, message]
         );
 
-        // 2. Try to send email
+        // 2. Respond immediately to user (instant form submission, zero waiting)
+        res.status(200).json({ success: true, message: "Inquiry submitted successfully." });
+
+        // 3. Send email asynchronously in the background
         const smtpHost = process.env.SMTP_HOST || "mail.vedantengineering.in";
         const smtpPort = parseInt(process.env.SMTP_PORT) || 465;
         const smtpUser = process.env.SMTP_USER || "web@vedantengineering.in";
         const smtpPass = process.env.SMTP_PASS || "Ves@#1991";
         const contactEmail = process.env.CONTACT_EMAIL || smtpUser;
 
-        try {
-            const transporter = nodemailer.createTransport({
-                host: smtpHost,
-                port: smtpPort,
-                secure: smtpPort === 465,
-                auth: {
-                    user: smtpUser,
-                    pass: smtpPass,
-                },
-                tls: {
-                    rejectUnauthorized: false
-                }
-            });
+        const transporter = nodemailer.createTransport({
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpPort === 465,
+            auth: {
+                user: smtpUser,
+                pass: smtpPass,
+            },
+            tls: {
+                rejectUnauthorized: false
+            }
+        });
 
-            const mailOptions = {
-                from: `"${name} (Vedant Inquiry)" <${smtpUser}>`,
-                to: contactEmail,
-                replyTo: email,
-                subject: `New Contact Inquiry from ${name}`,
-                html: `
+        const mailOptions = {
+            from: `"${name} (Vedant Inquiry)" <${smtpUser}>`,
+            to: contactEmail,
+            replyTo: email,
+            subject: `New Contact Inquiry from ${name}`,
+            html: `
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
     <h2 style="color: #e6820e; border-bottom: 2px solid #e6820e; padding-bottom: 8px;">New Contact Inquiry Received</h2>
     <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
@@ -132,16 +134,13 @@ app.post("/api/contact", async (req, res) => {
         <p style="color: #1e293b; line-height: 1.6; margin-top: 8px; white-space: pre-wrap;">${message}</p>
     </div>
 </div>
-                `
-            };
+            `
+        };
 
-            await transporter.sendMail(mailOptions);
-            console.log("✅ [Contact Email Sent Successfully to]", contactEmail);
-        } catch (emailErr) {
-            console.error("❌ [Email sending failed]:", emailErr);
-        }
+        transporter.sendMail(mailOptions)
+            .then(() => console.log("✅ [Contact Email Sent Successfully to]", contactEmail))
+            .catch((err) => console.error("❌ [Email sending failed]:", err.message));
 
-        res.status(200).json({ success: true, message: "Inquiry submitted successfully." });
     } catch (error) {
         console.error("Error saving contact inquiry:", error);
         res.status(500).json({ error: `Failed to submit inquiry: ${error.message}` });
