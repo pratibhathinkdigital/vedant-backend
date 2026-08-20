@@ -1,26 +1,33 @@
 const mysql = require("mysql2");
 
-// Create a database connection pool
-const pool = mysql.createPool({
-    host: process.env.DB_HOST || "103.21.59.170",
-    user: process.env.DB_USER || "vedanten_vedant_user",
-    password: process.env.DB_PASSWORD || "Vedant@2026",
-    database: process.env.DB_NAME || "vedanten_vedant_db",
-    port: parseInt(process.env.DB_PORT, 10) || 3306,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-    connectTimeout: 15000,
-    enableKeepAlive: true,
-    keepAliveInitialDelay: 10000
-});
+let pool;
+
+const connectionUrl = process.env.MYSQL_PRIVATE_URL || process.env.MYSQL_URL || process.env.DATABASE_URL;
+
+if (connectionUrl) {
+    pool = mysql.createPool(connectionUrl);
+} else {
+    pool = mysql.createPool({
+        host: process.env.MYSQLHOST || process.env.DB_HOST || "shinkansen.proxy.rlwy.net",
+        user: process.env.MYSQLUSER || process.env.DB_USER || "root",
+        password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || "mCXwFCvpvAaatXAnQXJHkPesoLxsdMCq",
+        database: process.env.MYSQLDATABASE || process.env.DB_NAME || "railway",
+        port: parseInt(process.env.MYSQLPORT || process.env.DB_PORT, 10) || 51954,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        connectTimeout: 15000,
+        enableKeepAlive: true,
+        keepAliveInitialDelay: 10000
+    });
+}
 
 // Test connection on startup
 pool.getConnection((err, connection) => {
     if (err) {
-        console.error("❌ [Database Connection Error]:", err.message, "Host:", process.env.DB_HOST);
+        console.error("❌ [Database Connection Error]:", err.message);
     } else {
-        console.log("✅ [Database Connected Successfully] to", process.env.DB_HOST || "103.21.59.170");
+        console.log("✅ [Database Connected Successfully]");
         connection.release();
     }
 });

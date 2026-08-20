@@ -132,7 +132,7 @@ exports.apiGetAll = async (req, res) => {
         res.json({ success: true, data: categories });
     } catch (error) {
         console.error("apiGetAll error:", error);
-        res.status(500).json({ success: false, message: "Database Error", error: error.message, code: error.code });
+        res.status(500).json({ success: false, message: "Database Error" });
     }
 };
 
