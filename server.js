@@ -97,7 +97,7 @@ app.post("/api/contact", async (req, res) => {
         // 3. Send email via Resend API (HTTPS - works on all cloud platforms)
         const resendApiKey = process.env.RESEND_API_KEY;
         const contactEmail = process.env.CONTACT_EMAIL || "web@vedantengineering.in";
-        const fromEmail = process.env.FROM_EMAIL || "noreply@vedantengineering.in";
+        const fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
 
         if (!resendApiKey) {
             console.error("❌ [RESEND_API_KEY not set in environment variables]");
@@ -147,7 +147,7 @@ app.post("/api/contact", async (req, res) => {
 app.get("/api/test-smtp", async (req, res) => {
     const resendApiKey = process.env.RESEND_API_KEY;
     const contactEmail = process.env.CONTACT_EMAIL || "web@vedantengineering.in";
-    const fromEmail = process.env.FROM_EMAIL || "noreply@vedantengineering.in";
+    const fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
 
     if (!resendApiKey) {
         return res.status(500).json({ success: false, error: "RESEND_API_KEY not set in environment" });
