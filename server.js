@@ -115,7 +115,7 @@ app.post("/api/contact", async (req, res) => {
         });
 
         const mailOptions = {
-            from: `"${name} (Vedant Inquiry)" <${smtpUser}>`,
+            from: `"Vedant Engineering" <${smtpUser}>`,
             to: contactEmail,
             replyTo: email,
             subject: `New Contact Inquiry from ${name}`,
@@ -138,12 +138,44 @@ app.post("/api/contact", async (req, res) => {
         };
 
         transporter.sendMail(mailOptions)
-            .then(() => console.log("✅ [Contact Email Sent Successfully to]", contactEmail))
-            .catch((err) => console.error("❌ [Email sending failed]:", err.message));
+            .then((info) => console.log("✅ [Contact Email Sent Successfully to]", contactEmail, "MessageID:", info.messageId))
+            .catch((err) => console.error("❌ [Email sending failed]:", err));
 
     } catch (error) {
         console.error("Error saving contact inquiry:", error);
         res.status(500).json({ error: `Failed to submit inquiry: ${error.message}` });
+    }
+});
+
+// Diagnostic SMTP Route
+app.get("/api/test-smtp", async (req, res) => {
+    const smtpHost = process.env.SMTP_HOST || "mail.vedantengineering.in";
+    const smtpPort = parseInt(process.env.SMTP_PORT) || 465;
+    const smtpUser = process.env.SMTP_USER || "web@vedantengineering.in";
+    const smtpPass = process.env.SMTP_PASS || "Ves@#1991";
+    const contactEmail = process.env.CONTACT_EMAIL || smtpUser;
+
+    try {
+        const transporter = nodemailer.createTransport({
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpPort === 465,
+            auth: { user: smtpUser, pass: smtpPass },
+            tls: { rejectUnauthorized: false }
+        });
+
+        await transporter.verify();
+        const info = await transporter.sendMail({
+            from: `"Vedant Engineering" <${smtpUser}>`,
+            to: contactEmail,
+            subject: "SMTP Diagnostic Test from Live Server",
+            text: "This is a direct test email confirming SMTP works on Railway."
+        });
+
+        res.json({ success: true, messageId: info.messageId, recipient: contactEmail });
+    } catch(err) {
+        console.error("[SMTP Test Error]:", err);
+        res.status(500).json({ success: false, error: err.message, stack: err.stack });
     }
 });
 
