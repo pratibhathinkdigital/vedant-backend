@@ -146,24 +146,29 @@ app.get("/api/test-smtp", async (req, res) => {
     const smtpPass = (process.env.SMTP_PASS || "xyzgggdpypignbec").replace(/\s+/g, "");
     const contactEmail = process.env.CONTACT_EMAIL || "web@vedantengineering.in";
 
+    // 15-second timeout so route never hangs
+    const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("SMTP send timed out after 15s")), 15000)
+    );
+
     try {
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: { user: smtpUser, pass: smtpPass }
         });
 
-        await transporter.verify();
-        const info = await transporter.sendMail({
+        const sendPromise = transporter.sendMail({
             from: `"Vedant Engineering" <${smtpUser}>`,
             to: contactEmail,
-            subject: "Live SMTP Test via Gmail Integration",
-            text: "SMTP is working 100% properly from Railway cloud."
+            subject: "Live SMTP Test via Gmail - Railway",
+            text: "Gmail SMTP is working correctly from Railway cloud server."
         });
 
-        res.json({ success: true, messageId: info.messageId, recipient: contactEmail });
+        const info = await Promise.race([sendPromise, timeoutPromise]);
+        res.json({ success: true, messageId: info.messageId, recipient: contactEmail, smtpUser });
     } catch(err) {
-        console.error("[SMTP Test Error]:", err);
-        res.status(500).json({ success: false, error: err.message, stack: err.stack });
+        console.error("[SMTP Test Error]:", err.message);
+        res.status(500).json({ success: false, error: err.message, smtpUser });
     }
 });
 
