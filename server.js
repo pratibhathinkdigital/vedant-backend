@@ -91,40 +91,54 @@ app.post("/api/contact", async (req, res) => {
             [name, phone, companyName || null, email, address || null, message]
         );
 
-        // 2. Try to send email (optional - won't fail the response)
-        if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-            try {
-                const transporter = nodemailer.createTransport({
-                    host: process.env.SMTP_HOST,
-                    port: parseInt(process.env.SMTP_PORT) || 465,
-                    secure: parseInt(process.env.SMTP_PORT) === 465,
-                    auth: {
-                        user: process.env.SMTP_USER,
-                        pass: process.env.SMTP_PASS,
-                    },
-                });
+        // 2. Try to send email
+        const smtpHost = process.env.SMTP_HOST || "mail.vedantengineering.in";
+        const smtpPort = parseInt(process.env.SMTP_PORT) || 465;
+        const smtpUser = process.env.SMTP_USER || "web@vedantengineering.in";
+        const smtpPass = process.env.SMTP_PASS || "Ves@#1991";
+        const contactEmail = process.env.CONTACT_EMAIL || smtpUser;
 
-                const mailOptions = {
-                    from: `"${name}" <${process.env.SMTP_USER}>`,
-                    to: process.env.CONTACT_EMAIL || process.env.SMTP_USER,
-                    replyTo: email,
-                    subject: `New Contact Inquiry from ${name}`,
-                    html: `
-<h3>New Contact Inquiry</h3>
-<p><strong>Name:</strong> ${name}</p>
-<p><strong>Company:</strong> ${companyName || "N/A"}</p>
-<p><strong>Phone:</strong> ${phone}</p>
-<p><strong>Email:</strong> ${email}</p>
-<p><strong>Address:</strong> ${address || "N/A"}</p>
-<p><strong>Message:</strong></p>
-<p>${message.replace(/\n/g, "<br>")}</p>
-                    `
-                };
+        try {
+            const transporter = nodemailer.createTransport({
+                host: smtpHost,
+                port: smtpPort,
+                secure: smtpPort === 465,
+                auth: {
+                    user: smtpUser,
+                    pass: smtpPass,
+                },
+                tls: {
+                    rejectUnauthorized: false
+                }
+            });
 
-                await transporter.sendMail(mailOptions);
-            } catch (emailErr) {
-                console.warn("Email sending failed (inquiry still saved to DB):", emailErr.message);
-            }
+            const mailOptions = {
+                from: `"${name} (Vedant Inquiry)" <${smtpUser}>`,
+                to: contactEmail,
+                replyTo: email,
+                subject: `New Contact Inquiry from ${name}`,
+                html: `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+    <h2 style="color: #e6820e; border-bottom: 2px solid #e6820e; padding-bottom: 8px;">New Contact Inquiry Received</h2>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+        <tr><td style="padding: 8px; font-weight: bold; width: 120px; color: #475569;">Name:</td><td style="padding: 8px; color: #1e293b;">${name}</td></tr>
+        <tr><td style="padding: 8px; font-weight: bold; color: #475569;">Company:</td><td style="padding: 8px; color: #1e293b;">${companyName || "N/A"}</td></tr>
+        <tr><td style="padding: 8px; font-weight: bold; color: #475569;">Phone:</td><td style="padding: 8px; color: #1e293b;"><a href="tel:${phone}">${phone}</a></td></tr>
+        <tr><td style="padding: 8px; font-weight: bold; color: #475569;">Email:</td><td style="padding: 8px; color: #1e293b;"><a href="mailto:${email}">${email}</a></td></tr>
+        <tr><td style="padding: 8px; font-weight: bold; color: #475569;">Address:</td><td style="padding: 8px; color: #1e293b;">${address || "N/A"}</td></tr>
+    </table>
+    <div style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+        <strong style="color: #334155;">Message:</strong>
+        <p style="color: #1e293b; line-height: 1.6; margin-top: 8px; white-space: pre-wrap;">${message}</p>
+    </div>
+</div>
+                `
+            };
+
+            await transporter.sendMail(mailOptions);
+            console.log("✅ [Contact Email Sent Successfully to]", contactEmail);
+        } catch (emailErr) {
+            console.error("❌ [Email sending failed]:", emailErr);
         }
 
         res.status(200).json({ success: true, message: "Inquiry submitted successfully." });
