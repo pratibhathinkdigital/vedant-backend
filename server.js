@@ -21,7 +21,7 @@ const associateCategoryController = require("./controllers/associateCategory");
 const associateVariantController = require("./controllers/associateVariant");
 const inquiryController = require("./controllers/inquiry");
 const cors = require("cors");
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 const app = express();
 
 // Body parser middlewares
@@ -94,14 +94,21 @@ app.post("/api/contact", async (req, res) => {
         // 2. Respond immediately to user (instant form submission, zero waiting)
         res.status(200).json({ success: true, message: "Inquiry submitted successfully." });
 
-        // 3. Send email asynchronously in the background via Gmail SMTP
-        const smtpUser = process.env.SMTP_USER || "pratibhathinkdigital@gmail.com";
-        const smtpPass = (process.env.SMTP_PASS || "xyzgggdpypignbec").replace(/\s+/g, "");
+        // 3. Send email via Resend API (HTTPS - works on all cloud platforms)
+        const resendApiKey = process.env.RESEND_API_KEY;
         const contactEmail = process.env.CONTACT_EMAIL || "web@vedantengineering.in";
+        const fromEmail = process.env.FROM_EMAIL || "noreply@vedantengineering.in";
 
-        const mailOptions = {
-            from: `"Vedant Engineering Inquiry" <${smtpUser}>`,
-            to: contactEmail,
+        if (!resendApiKey) {
+            console.error("❌ [RESEND_API_KEY not set in environment variables]");
+            return;
+        }
+
+        const resend = new Resend(resendApiKey);
+
+        resend.emails.send({
+            from: `Vedant Engineering <${fromEmail}>`,
+            to: [contactEmail],
             replyTo: email,
             subject: `New Contact Inquiry from ${name}`,
             html: `
@@ -120,19 +127,15 @@ app.post("/api/contact", async (req, res) => {
     </div>
 </div>
             `
-        };
-
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: smtpUser,
-                pass: smtpPass
+        })
+        .then((result) => {
+            if (result.error) {
+                console.error("❌ [Resend Email Failed]:", result.error);
+            } else {
+                console.log("✅ [Resend Email Sent to]", contactEmail, "ID:", result.data?.id);
             }
-        });
-
-        transporter.sendMail(mailOptions)
-            .then((info) => console.log("✅ [Contact Email Sent Successfully to]", contactEmail, "MessageID:", info.messageId))
-            .catch((err) => console.error("❌ [Email sending failed]:", err.message));
+        })
+        .catch((err) => console.error("❌ [Resend Exception]:", err.message));
 
     } catch (error) {
         console.error("Error saving contact inquiry:", error);
@@ -140,35 +143,33 @@ app.post("/api/contact", async (req, res) => {
     }
 });
 
-// Diagnostic SMTP Route (Tests Gmail delivery)
+// Diagnostic Resend Route
 app.get("/api/test-smtp", async (req, res) => {
-    const smtpUser = process.env.SMTP_USER || "pratibhathinkdigital@gmail.com";
-    const smtpPass = (process.env.SMTP_PASS || "xyzgggdpypignbec").replace(/\s+/g, "");
+    const resendApiKey = process.env.RESEND_API_KEY;
     const contactEmail = process.env.CONTACT_EMAIL || "web@vedantengineering.in";
+    const fromEmail = process.env.FROM_EMAIL || "noreply@vedantengineering.in";
 
-    // 15-second timeout so route never hangs
-    const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("SMTP send timed out after 15s")), 15000)
-    );
+    if (!resendApiKey) {
+        return res.status(500).json({ success: false, error: "RESEND_API_KEY not set in environment" });
+    }
 
     try {
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: { user: smtpUser, pass: smtpPass }
+        const resend = new Resend(resendApiKey);
+        const result = await resend.emails.send({
+            from: `Vedant Engineering <${fromEmail}>`,
+            to: [contactEmail],
+            subject: "Live Resend API Test from Railway",
+            text: "Resend API is working correctly from the Railway cloud server!"
         });
 
-        const sendPromise = transporter.sendMail({
-            from: `"Vedant Engineering" <${smtpUser}>`,
-            to: contactEmail,
-            subject: "Live SMTP Test via Gmail - Railway",
-            text: "Gmail SMTP is working correctly from Railway cloud server."
-        });
-
-        const info = await Promise.race([sendPromise, timeoutPromise]);
-        res.json({ success: true, messageId: info.messageId, recipient: contactEmail, smtpUser });
+        if (result.error) {
+            res.status(500).json({ success: false, error: result.error, fromEmail, contactEmail });
+        } else {
+            res.json({ success: true, id: result.data?.id, fromEmail, contactEmail });
+        }
     } catch(err) {
-        console.error("[SMTP Test Error]:", err.message);
-        res.status(500).json({ success: false, error: err.message, smtpUser });
+        console.error("[Resend Test Error]:", err.message);
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
