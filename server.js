@@ -94,14 +94,13 @@ app.post("/api/contact", async (req, res) => {
         // 2. Respond immediately to user (instant form submission, zero waiting)
         res.status(200).json({ success: true, message: "Inquiry submitted successfully." });
 
-        // 3. Send email asynchronously in the background
-        const smtpHost = process.env.SMTP_HOST || "mail.vedantengineering.in";
-        const smtpUser = process.env.SMTP_USER || "web@vedantengineering.in";
-        const smtpPass = process.env.SMTP_PASS || "Ves@#1991";
-        const contactEmail = process.env.CONTACT_EMAIL || smtpUser;
+        // 3. Send email asynchronously in the background via Gmail SMTP
+        const smtpUser = process.env.SMTP_USER || "pratibhathinkdigital@gmail.com";
+        const smtpPass = (process.env.SMTP_PASS || "xyzgggdpypignbec").replace(/\s+/g, "");
+        const contactEmail = process.env.CONTACT_EMAIL || "web@vedantengineering.in";
 
         const mailOptions = {
-            from: `"Vedant Engineering" <${smtpUser}>`,
+            from: `"Vedant Engineering Inquiry" <${smtpUser}>`,
             to: contactEmail,
             replyTo: email,
             subject: `New Contact Inquiry from ${name}`,
@@ -123,41 +122,17 @@ app.post("/api/contact", async (req, res) => {
             `
         };
 
-        // Helper to send email with port 587 then port 465 fallback
-        (async () => {
-            // Attempt 1: Port 587 (Standard submission port)
-            try {
-                const t587 = nodemailer.createTransport({
-                    host: smtpHost,
-                    port: 587,
-                    secure: false,
-                    auth: { user: smtpUser, pass: smtpPass },
-                    tls: { rejectUnauthorized: false },
-                    connectionTimeout: 8000
-                });
-                const info = await t587.sendMail(mailOptions);
-                console.log("✅ [Contact Email Sent via Port 587]:", info.messageId);
-                return;
-            } catch (err587) {
-                console.warn("⚠️ [Port 587 failed, trying 465]:", err587.message);
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: smtpUser,
+                pass: smtpPass
             }
+        });
 
-            // Attempt 2: Port 465 (SSL)
-            try {
-                const t465 = nodemailer.createTransport({
-                    host: smtpHost,
-                    port: 465,
-                    secure: true,
-                    auth: { user: smtpUser, pass: smtpPass },
-                    tls: { rejectUnauthorized: false },
-                    connectionTimeout: 8000
-                });
-                const info = await t465.sendMail(mailOptions);
-                console.log("✅ [Contact Email Sent via Port 465]:", info.messageId);
-            } catch (err465) {
-                console.error("❌ [All SMTP delivery attempts failed]:", err465.message);
-            }
-        })();
+        transporter.sendMail(mailOptions)
+            .then((info) => console.log("✅ [Contact Email Sent Successfully to]", contactEmail, "MessageID:", info.messageId))
+            .catch((err) => console.error("❌ [Email sending failed]:", err.message));
 
     } catch (error) {
         console.error("Error saving contact inquiry:", error);
@@ -165,58 +140,31 @@ app.post("/api/contact", async (req, res) => {
     }
 });
 
-// Diagnostic SMTP Route (Tests both 587 and 465)
+// Diagnostic SMTP Route (Tests Gmail delivery)
 app.get("/api/test-smtp", async (req, res) => {
-    const smtpHost = process.env.SMTP_HOST || "mail.vedantengineering.in";
-    const smtpUser = process.env.SMTP_USER || "web@vedantengineering.in";
-    const smtpPass = process.env.SMTP_PASS || "Ves@#1991";
-    const contactEmail = process.env.CONTACT_EMAIL || smtpUser;
+    const smtpUser = process.env.SMTP_USER || "pratibhathinkdigital@gmail.com";
+    const smtpPass = (process.env.SMTP_PASS || "xyzgggdpypignbec").replace(/\s+/g, "");
+    const contactEmail = process.env.CONTACT_EMAIL || "web@vedantengineering.in";
 
-    const results = {};
-
-    // Test 587
     try {
-        const t587 = nodemailer.createTransport({
-            host: smtpHost,
-            port: 587,
-            secure: false,
-            auth: { user: smtpUser, pass: smtpPass },
-            tls: { rejectUnauthorized: false },
-            connectionTimeout: 8000
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: { user: smtpUser, pass: smtpPass }
         });
-        const info = await t587.sendMail({
+
+        await transporter.verify();
+        const info = await transporter.sendMail({
             from: `"Vedant Engineering" <${smtpUser}>`,
             to: contactEmail,
-            subject: "SMTP Test via Port 587",
-            text: "Testing Port 587"
+            subject: "Live SMTP Test via Gmail Integration",
+            text: "SMTP is working 100% properly from Railway cloud."
         });
-        results.port587 = { success: true, messageId: info.messageId };
-    } catch (e) {
-        results.port587 = { success: false, error: e.message };
-    }
 
-    // Test 465
-    try {
-        const t465 = nodemailer.createTransport({
-            host: smtpHost,
-            port: 465,
-            secure: true,
-            auth: { user: smtpUser, pass: smtpPass },
-            tls: { rejectUnauthorized: false },
-            connectionTimeout: 8000
-        });
-        const info = await t465.sendMail({
-            from: `"Vedant Engineering" <${smtpUser}>`,
-            to: contactEmail,
-            subject: "SMTP Test via Port 465",
-            text: "Testing Port 465"
-        });
-        results.port465 = { success: true, messageId: info.messageId };
-    } catch (e) {
-        results.port465 = { success: false, error: e.message };
+        res.json({ success: true, messageId: info.messageId, recipient: contactEmail });
+    } catch(err) {
+        console.error("[SMTP Test Error]:", err);
+        res.status(500).json({ success: false, error: err.message, stack: err.stack });
     }
-
-    res.json(results);
 });
 
 // Dashboard Route
