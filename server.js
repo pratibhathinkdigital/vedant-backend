@@ -19,6 +19,7 @@ const aboutController = require("./controllers/about");
 const iprojectController = require("./controllers/iproject");
 const associateCategoryController = require("./controllers/associateCategory");
 const associateVariantController = require("./controllers/associateVariant");
+const inquiryController = require("./controllers/inquiry");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
 const app = express();
@@ -300,6 +301,11 @@ app.get("/projects/delete/:id", requireAuth, projectController.delete);
 
 // API Route for Projects
 app.get("/api/projects", projectController.apiGetAll);
+
+// Contact Inquiries Routes (Admin)
+app.get("/inquiry", requireAuth, (req, res) => res.redirect("/inquiries"));
+app.get("/inquiries", requireAuth, inquiryController.index);
+app.get("/inquiries/delete/:id", requireAuth, inquiryController.delete);
 
 // Standalone mode (node server.js) - Passenger handles socket on its own
 if (require.main === module) {

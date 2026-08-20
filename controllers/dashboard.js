@@ -3,6 +3,7 @@ const Category = require("../models/category");
 const Gallery = require("../models/gallery");
 const Project = require("../models/project");
 const Offering = require("../models/offering");
+const db = require("../config/db");
 
 exports.renderDashboard = async (req, res) => {
     let totalProducts = 0;
@@ -10,19 +11,34 @@ exports.renderDashboard = async (req, res) => {
     let totalBlogs = 0;
     let totalProjects = 0;
     let totalOfferings = 0;
+    let totalInquiries = 0;
     let recentProducts = [];
     let recentCategories = [];
 
     try {
         // Real counts from database
-        [totalProducts, totalCategories, totalBlogs, totalProjects, totalOfferings] =
-            await Promise.all([
-                Product.count(),
-                Category.count(),
-                Gallery.count(),
-                Project.count(),
-                Offering.count()
-            ]);
+        const [
+            prodCount,
+            catCount,
+            galCount,
+            projCount,
+            offCount,
+            [inqRows]
+        ] = await Promise.all([
+            Product.count(),
+            Category.count(),
+            Gallery.count(),
+            Project.count(),
+            Offering.count(),
+            db.query("SELECT COUNT(*) AS total FROM contact_inquiries").catch(() => [[{ total: 0 }]])
+        ]);
+
+        totalProducts = prodCount || 0;
+        totalCategories = catCount || 0;
+        totalBlogs = galCount || 0;
+        totalProjects = projCount || 0;
+        totalOfferings = offCount || 0;
+        totalInquiries = (inqRows && inqRows[0] && inqRows[0].total) ? inqRows[0].total : 0;
 
         // Fetch recent 5 products and categories
         const allProducts = await Product.getAll();
@@ -40,7 +56,8 @@ exports.renderDashboard = async (req, res) => {
         totalCategories,
         totalBlogs,
         totalProjects,
-        totalOfferings
+        totalOfferings,
+        totalInquiries
     };
 
     // Demo recent transactions

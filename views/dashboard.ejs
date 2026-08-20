@@ -92,6 +92,21 @@
             </div>
         </div>
     </div>
+
+    <div class="metric-card" onclick="window.location.href='/inquiries'" style="cursor:pointer;">
+        <div class="card-border-glow"></div>
+        <div class="card-content">
+            <div class="card-header">
+                <span class="card-title">Contact Inquiries</span>
+                <div class="card-icon sales" style="background:rgba(230, 130, 14, 0.15); color:#e6820e;">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                </div>
+            </div>
+            <div class="card-body">
+                <h2><%= stats.totalInquiries || 0 %></h2>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Charts Section -->

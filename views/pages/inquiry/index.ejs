@@ -1,0 +1,248 @@
+<%- include('../../layout/header') %>
+
+    <div class="dashboard-header-banner">
+        <div class="banner-welcome-text">
+            <h1>Contact Inquiries</h1>
+            <p>View and manage inquiries received from the website contact form.</p>
+        </div>
+
+        <div class="banner-actions">
+            <span class="badge" style="background:#e6820e; color:#fff; font-size:14px; padding:10px 18px; border-radius:8px; font-weight:600;">
+                <i class="fa-solid fa-envelope-open-text" style="margin-right:8px;"></i>
+                Total: <%= inquiries.length %> Inquiries
+            </span>
+        </div>
+    </div>
+
+    <div class="table-container" style="width:100%; margin-top:20px;">
+
+        <div class="section-header">
+            <h3>Recent Submissions</h3>
+
+            <div class="search-box" style="width:300px;">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input
+                    type="text"
+                    id="table-search"
+                    placeholder="Search by name, email, phone...">
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:70px;">ID</th>
+                        <th style="width:140px;">Date & Time</th>
+                        <th style="width:180px;">Sender</th>
+                        <th style="width:200px;">Contact Details</th>
+                        <th>Message</th>
+                        <th style="width:130px; text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <% if(inquiries.length > 0){ %>
+                        <% inquiries.forEach(inquiry => { %>
+                            <tr>
+                                <td><strong>#<%= inquiry.id %></strong></td>
+
+                                <td style="font-size:13px; color:#666;">
+                                    <% 
+                                        const d = new Date(inquiry.created_at);
+                                        const formattedDate = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                                        const formattedTime = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                                    %>
+                                    <div><i class="fa-regular fa-calendar" style="margin-right:4px;"></i><%= formattedDate %></div>
+                                    <div style="margin-top:3px;"><i class="fa-regular fa-clock" style="margin-right:4px;"></i><%= formattedTime %></div>
+                                </td>
+
+                                <td>
+                                    <div style="font-weight:600; color:#1e293b; font-size:15px;"><%= inquiry.name %></div>
+                                    <% if(inquiry.company_name){ %>
+                                        <div style="margin-top:4px;">
+                                            <span style="background:#f1f5f9; color:#475569; font-size:12px; padding:2px 8px; border-radius:4px; display:inline-block;">
+                                                <i class="fa-solid fa-building" style="margin-right:4px;"></i><%= inquiry.company_name %>
+                                            </span>
+                                        </div>
+                                    <% } %>
+                                </td>
+
+                                <td>
+                                    <div>
+                                        <a href="tel:<%= inquiry.phone %>" style="color:#e6820e; text-decoration:none; font-weight:500; font-size:13px;">
+                                            <i class="fa-solid fa-phone" style="margin-right:6px;"></i><%= inquiry.phone %>
+                                        </a>
+                                    </div>
+                                    <div style="margin-top:4px;">
+                                        <a href="mailto:<%= inquiry.email %>" style="color:#2563eb; text-decoration:none; font-size:13px; word-break:break-all;">
+                                            <i class="fa-solid fa-envelope" style="margin-right:6px;"></i><%= inquiry.email %>
+                                        </a>
+                                    </div>
+                                    <% if(inquiry.address){ %>
+                                        <div style="margin-top:4px; font-size:12px; color:#64748b;">
+                                            <i class="fa-solid fa-location-dot" style="margin-right:6px;"></i><%= inquiry.address %>
+                                        </div>
+                                    <% } %>
+                                </td>
+
+                                <td>
+                                    <div style="max-width:350px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#334155; font-size:14px;" title="<%= inquiry.message %>">
+                                        <%= inquiry.message %>
+                                    </div>
+                                </td>
+
+                                <td style="text-align:right;">
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-secondary"
+                                        style="margin-right:5px; background:#e0e7ff; color:#3730a3; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;"
+                                        title="View Full Details"
+                                        onclick="openInquiryModal(<%= JSON.stringify(inquiry) %>)">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+
+                                    <a
+                                        href="/inquiries/delete/<%= inquiry.id %>"
+                                        class="btn btn-sm btn-danger"
+                                        style="padding:6px 12px; border-radius:6px;"
+                                        title="Delete Inquiry"
+                                        onclick="return confirm('Are you sure you want to delete this inquiry from <%= inquiry.name %>?')">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="6" style="text-align:center; padding:50px; color:#64748b;">
+                                <i class="fa-solid fa-envelope-open" style="font-size:40px; color:#cbd5e1; margin-bottom:12px; display:block;"></i>
+                                <strong>No contact inquiries found yet.</strong>
+                                <p style="margin-top:6px; font-size:13px;">Inquiries submitted through the website contact form will appear here.</p>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Inquiry Details Modal -->
+    <div id="inquiryModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(3px); align-items:center; justify-content:center;">
+        <div style="background:#fff; width:90%; max-width:650px; border-radius:14px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.2); overflow:hidden; animation:fadeIn 0.2s ease-out;">
+            <div style="background:#1e293b; color:#fff; padding:18px 24px; display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0; font-size:18px; display:flex; align-items:center; gap:10px;">
+                    <i class="fa-solid fa-envelope-open-text" style="color:#e6820e;"></i>
+                    Inquiry Details
+                </h3>
+                <button onclick="closeInquiryModal()" style="background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer; line-height:1;">
+                    ✕
+                </button>
+            </div>
+
+            <div style="padding:24px; max-height:75vh; overflow-y:auto;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; background:#f8fafc; padding:16px; border-radius:10px; border:1px solid #e2e8f0;">
+                    <div>
+                        <span style="font-size:12px; text-transform:uppercase; color:#64748b; font-weight:600; display:block;">Sender Name</span>
+                        <span id="modalName" style="font-size:15px; font-weight:600; color:#0f172a;"></span>
+                    </div>
+                    <div>
+                        <span style="font-size:12px; text-transform:uppercase; color:#64748b; font-weight:600; display:block;">Company Name</span>
+                        <span id="modalCompany" style="font-size:15px; color:#334155;"></span>
+                    </div>
+                    <div>
+                        <span style="font-size:12px; text-transform:uppercase; color:#64748b; font-weight:600; display:block;">Phone Number</span>
+                        <a id="modalPhone" href="#" style="font-size:15px; color:#e6820e; text-decoration:none; font-weight:600;"></a>
+                    </div>
+                    <div>
+                        <span style="font-size:12px; text-transform:uppercase; color:#64748b; font-weight:600; display:block;">Email Address</span>
+                        <a id="modalEmail" href="#" style="font-size:15px; color:#2563eb; text-decoration:none;"></a>
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <span style="font-size:12px; text-transform:uppercase; color:#64748b; font-weight:600; display:block;">Address / Location</span>
+                        <span id="modalAddress" style="font-size:14px; color:#475569;"></span>
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <span style="font-size:12px; text-transform:uppercase; color:#64748b; font-weight:600; display:block;">Submission Date</span>
+                        <span id="modalDate" style="font-size:13px; color:#64748b;"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <span style="font-size:13px; text-transform:uppercase; color:#475569; font-weight:700; display:block; margin-bottom:8px;">Message</span>
+                    <div id="modalMessage" style="background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:16px; font-size:14px; line-height:1.7; color:#1e293b; white-space:pre-wrap;"></div>
+                </div>
+            </div>
+
+            <div style="background:#f1f5f9; padding:14px 24px; display:flex; justify-content:flex-end; gap:12px; border-top:1px solid #e2e8f0;">
+                <a id="modalReplyBtn" href="#" class="btn btn-primary" style="background:#2563eb; border:none; text-decoration:none;">
+                    <i class="fa-solid fa-reply" style="margin-right:6px;"></i> Reply via Email
+                </a>
+                <button onclick="closeInquiryModal()" class="btn btn-secondary" style="border:none; cursor:pointer;">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Live Search Filter
+    const search = document.getElementById("table-search");
+    if(search){
+        search.addEventListener("keyup", function(){
+            const value = this.value.toLowerCase();
+            const rows = document.querySelectorAll("tbody tr");
+
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(value) ? "" : "none";
+            });
+        });
+    }
+
+    // Modal Control
+    function openInquiryModal(inquiry){
+        document.getElementById("modalName").innerText = inquiry.name || "N/A";
+        document.getElementById("modalCompany").innerText = inquiry.company_name || "N/A";
+        
+        const phoneEl = document.getElementById("modalPhone");
+        phoneEl.innerText = inquiry.phone || "N/A";
+        phoneEl.href = inquiry.phone ? ("tel:" + inquiry.phone) : "#";
+
+        const emailEl = document.getElementById("modalEmail");
+        emailEl.innerText = inquiry.email || "N/A";
+        emailEl.href = inquiry.email ? ("mailto:" + inquiry.email) : "#";
+
+        document.getElementById("modalAddress").innerText = inquiry.address || "N/A";
+
+        const d = new Date(inquiry.created_at);
+        document.getElementById("modalDate").innerText = d.toLocaleString('en-GB', { dateStyle: 'full', timeStyle: 'medium' });
+
+        document.getElementById("modalMessage").innerText = inquiry.message || "";
+        
+        document.getElementById("modalReplyBtn").href = "mailto:" + inquiry.email + "?subject=Re: Inquiry from " + encodeURIComponent(inquiry.name) + " - Vedant Engineering";
+
+        const modal = document.getElementById("inquiryModal");
+        modal.style.display = "flex";
+    }
+
+    function closeInquiryModal(){
+        document.getElementById("inquiryModal").style.display = "none";
+    }
+
+    // Close modal on escape key
+    document.addEventListener("keydown", function(e){
+        if(e.key === "Escape"){
+            closeInquiryModal();
+        }
+    });
+
+    // Close modal on background click
+    document.getElementById("inquiryModal").addEventListener("click", function(e){
+        if(e.target === this){
+            closeInquiryModal();
+        }
+    });
+    </script>
+
+<%- include('../../layout/footer') %>
