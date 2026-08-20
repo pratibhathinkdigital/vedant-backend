@@ -96,23 +96,9 @@ app.post("/api/contact", async (req, res) => {
 
         // 3. Send email asynchronously in the background
         const smtpHost = process.env.SMTP_HOST || "mail.vedantengineering.in";
-        const smtpPort = parseInt(process.env.SMTP_PORT) || 465;
         const smtpUser = process.env.SMTP_USER || "web@vedantengineering.in";
         const smtpPass = process.env.SMTP_PASS || "Ves@#1991";
         const contactEmail = process.env.CONTACT_EMAIL || smtpUser;
-
-        const transporter = nodemailer.createTransport({
-            host: smtpHost,
-            port: smtpPort,
-            secure: smtpPort === 465,
-            auth: {
-                user: smtpUser,
-                pass: smtpPass,
-            },
-            tls: {
-                rejectUnauthorized: false
-            }
-        });
 
         const mailOptions = {
             from: `"Vedant Engineering" <${smtpUser}>`,
@@ -137,9 +123,41 @@ app.post("/api/contact", async (req, res) => {
             `
         };
 
-        transporter.sendMail(mailOptions)
-            .then((info) => console.log("✅ [Contact Email Sent Successfully to]", contactEmail, "MessageID:", info.messageId))
-            .catch((err) => console.error("❌ [Email sending failed]:", err));
+        // Helper to send email with port 587 then port 465 fallback
+        (async () => {
+            // Attempt 1: Port 587 (Standard submission port)
+            try {
+                const t587 = nodemailer.createTransport({
+                    host: smtpHost,
+                    port: 587,
+                    secure: false,
+                    auth: { user: smtpUser, pass: smtpPass },
+                    tls: { rejectUnauthorized: false },
+                    connectionTimeout: 8000
+                });
+                const info = await t587.sendMail(mailOptions);
+                console.log("✅ [Contact Email Sent via Port 587]:", info.messageId);
+                return;
+            } catch (err587) {
+                console.warn("⚠️ [Port 587 failed, trying 465]:", err587.message);
+            }
+
+            // Attempt 2: Port 465 (SSL)
+            try {
+                const t465 = nodemailer.createTransport({
+                    host: smtpHost,
+                    port: 465,
+                    secure: true,
+                    auth: { user: smtpUser, pass: smtpPass },
+                    tls: { rejectUnauthorized: false },
+                    connectionTimeout: 8000
+                });
+                const info = await t465.sendMail(mailOptions);
+                console.log("✅ [Contact Email Sent via Port 465]:", info.messageId);
+            } catch (err465) {
+                console.error("❌ [All SMTP delivery attempts failed]:", err465.message);
+            }
+        })();
 
     } catch (error) {
         console.error("Error saving contact inquiry:", error);
@@ -147,36 +165,58 @@ app.post("/api/contact", async (req, res) => {
     }
 });
 
-// Diagnostic SMTP Route
+// Diagnostic SMTP Route (Tests both 587 and 465)
 app.get("/api/test-smtp", async (req, res) => {
     const smtpHost = process.env.SMTP_HOST || "mail.vedantengineering.in";
-    const smtpPort = parseInt(process.env.SMTP_PORT) || 465;
     const smtpUser = process.env.SMTP_USER || "web@vedantengineering.in";
     const smtpPass = process.env.SMTP_PASS || "Ves@#1991";
     const contactEmail = process.env.CONTACT_EMAIL || smtpUser;
 
-    try {
-        const transporter = nodemailer.createTransport({
-            host: smtpHost,
-            port: smtpPort,
-            secure: smtpPort === 465,
-            auth: { user: smtpUser, pass: smtpPass },
-            tls: { rejectUnauthorized: false }
-        });
+    const results = {};
 
-        await transporter.verify();
-        const info = await transporter.sendMail({
+    // Test 587
+    try {
+        const t587 = nodemailer.createTransport({
+            host: smtpHost,
+            port: 587,
+            secure: false,
+            auth: { user: smtpUser, pass: smtpPass },
+            tls: { rejectUnauthorized: false },
+            connectionTimeout: 8000
+        });
+        const info = await t587.sendMail({
             from: `"Vedant Engineering" <${smtpUser}>`,
             to: contactEmail,
-            subject: "SMTP Diagnostic Test from Live Server",
-            text: "This is a direct test email confirming SMTP works on Railway."
+            subject: "SMTP Test via Port 587",
+            text: "Testing Port 587"
         });
-
-        res.json({ success: true, messageId: info.messageId, recipient: contactEmail });
-    } catch(err) {
-        console.error("[SMTP Test Error]:", err);
-        res.status(500).json({ success: false, error: err.message, stack: err.stack });
+        results.port587 = { success: true, messageId: info.messageId };
+    } catch (e) {
+        results.port587 = { success: false, error: e.message };
     }
+
+    // Test 465
+    try {
+        const t465 = nodemailer.createTransport({
+            host: smtpHost,
+            port: 465,
+            secure: true,
+            auth: { user: smtpUser, pass: smtpPass },
+            tls: { rejectUnauthorized: false },
+            connectionTimeout: 8000
+        });
+        const info = await t465.sendMail({
+            from: `"Vedant Engineering" <${smtpUser}>`,
+            to: contactEmail,
+            subject: "SMTP Test via Port 465",
+            text: "Testing Port 465"
+        });
+        results.port465 = { success: true, messageId: info.messageId };
+    } catch (e) {
+        results.port465 = { success: false, error: e.message };
+    }
+
+    res.json(results);
 });
 
 // Dashboard Route
