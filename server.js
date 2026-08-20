@@ -82,34 +82,33 @@ app.post("/api/contact", async (req, res) => {
     }
 
     try {
-        const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: parseInt(process.env.SMTP_PORT) || 465,
-            secure: parseInt(process.env.SMTP_PORT) === 465,
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
-            },
-        });
+        // 1. Save inquiry to database first (always works)
+        const db = require("./config/db");
+        await db.execute(
+            `INSERT INTO contact_inquiries (name, phone, company_name, email, address, message, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+            [name, phone, companyName || null, email, address || null, message]
+        );
 
-        const mailOptions = {
-            from: `"${name}" <${process.env.SMTP_USER}>`,
-            to: process.env.CONTACT_EMAIL,
-            replyTo: email,
-            subject: `New Contact Inquiry from ${name}`,
-            text: `
-You have a new contact form submission:
+        // 2. Try to send email (optional - won't fail the response)
+        if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+            try {
+                const transporter = nodemailer.createTransport({
+                    host: process.env.SMTP_HOST,
+                    port: parseInt(process.env.SMTP_PORT) || 465,
+                    secure: parseInt(process.env.SMTP_PORT) === 465,
+                    auth: {
+                        user: process.env.SMTP_USER,
+                        pass: process.env.SMTP_PASS,
+                    },
+                });
 
-Name: ${name}
-Company: ${companyName || "N/A"}
-Phone: ${phone}
-Email: ${email}
-Address: ${address || "N/A"}
-
-Message:
-${message}
-            `,
-            html: `
+                const mailOptions = {
+                    from: `"${name}" <${process.env.SMTP_USER}>`,
+                    to: process.env.CONTACT_EMAIL || process.env.SMTP_USER,
+                    replyTo: email,
+                    subject: `New Contact Inquiry from ${name}`,
+                    html: `
 <h3>New Contact Inquiry</h3>
 <p><strong>Name:</strong> ${name}</p>
 <p><strong>Company:</strong> ${companyName || "N/A"}</p>
@@ -118,14 +117,19 @@ ${message}
 <p><strong>Address:</strong> ${address || "N/A"}</p>
 <p><strong>Message:</strong></p>
 <p>${message.replace(/\n/g, "<br>")}</p>
-            `
-        };
+                    `
+                };
 
-        await transporter.sendMail(mailOptions);
-        res.status(200).json({ success: true, message: "Inquiry sent successfully." });
+                await transporter.sendMail(mailOptions);
+            } catch (emailErr) {
+                console.warn("Email sending failed (inquiry still saved to DB):", emailErr.message);
+            }
+        }
+
+        res.status(200).json({ success: true, message: "Inquiry submitted successfully." });
     } catch (error) {
-        console.error("Error sending email:", error);
-        res.status(500).json({ error: `Failed to send inquiry: ${error.message}` });
+        console.error("Error saving contact inquiry:", error);
+        res.status(500).json({ error: `Failed to submit inquiry: ${error.message}` });
     }
 });
 
